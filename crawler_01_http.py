@@ -58,6 +58,7 @@ import urllib.request
 import urllib.parse  # 用于转译
 import string  # 用于转译
 
+
 def load_data():
     # 要爬取的url
     url = "http://www.baidu.com/"
