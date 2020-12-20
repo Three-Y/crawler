@@ -60,6 +60,7 @@ import string  # 用于转译
 
 
 def load_data():
+    """访问url并读取返回的内容"""
     # 要爬取的url
     url = "http://www.baidu.com/"
     # 发送请求并接收响应数据
@@ -74,11 +75,12 @@ def load_data():
     str_data = data.decode("utf-8")
     print(str_data)
     # 将数据写入文件
-    with open("baidu.html","w",encoding="utf-8") as f:
+    with open("baidu.html", "w", encoding="utf-8") as f:
         f.write(str_data)
 
 
 def load_data_with_params():
+    """访问url并传递参数"""
     url = "http://www.baidu.com/s?wd="
     # 搜索词（有中文字符）
     key_word = "帅哥"
@@ -102,5 +104,25 @@ def load_data_with_params():
         f.write(str_data)
 
 
+def load_data_with_dic():
+    """使用字典传递参数"""
+    url = "http://www.baidu.com/s?wd="
+    params_dic = {
+        "wd": "一夜暴富",
+        "key1": "abc",
+        "key2": "123"
+    }
+    # 字典不能与字符串直接拼接，先将其转换成字符串
+    params_str = urllib.parse.urlencode(params_dic)
+    final_url = url + params_str
+    # 还会对中文进行转译
+    print(final_url)  # http://www.baidu.com/s?wd=wd=%E4%B8%80%E5%A4%9C%E6%9A%B4%E5%AF%8C&key1=abc&key2=123
+    response = urllib.request.urlopen(final_url)
+    data = response.read().decode("utf-8")
+    with open("baidu_一夜暴富.html","w",encoding="utf-8") as f:
+        f.write(data)
+
+
 # load_data()
-load_data_with_params()
+# load_data_with_params()
+load_data_with_dic()
