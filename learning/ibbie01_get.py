@@ -56,5 +56,5 @@ def request_with_header():
 
 if __name__ == '__main__':
     # test_requests()
-    # request_with_param()
-    request_with_header()
+    request_with_param()
+    # request_with_header()
