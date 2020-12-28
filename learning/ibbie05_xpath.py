@@ -1,5 +1,6 @@
 from lxml import etree
 import requests
+import os
 
 
 def test_etree():
@@ -39,5 +40,34 @@ def fs58():
         print(house_title)
 
 
+def netbian():
+    """
+    会存在乱码问题
+    两种解决办法
+        设置响应的编码：response.encoding = "gbk"
+        通用的解决中文编码问题的方式：encode('iso-8859-1').decode('gbk')
+    """
+    if not os.path.exists("./05_netbian/"):
+        os.mkdir("./05_netbian/")
+
+    url = "http://pic.netbian.com/4kfengjing/"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.163 Safari/535.1"}
+    response = requests.get(url=url, headers=headers)
+    # 设置响应的编码：
+    response.encoding = "gbk"
+    html = etree.HTML(response.text)
+    li_list = html.xpath('//ul[@class="clearfix"]/li')
+    for li in li_list:
+        pic_name = li.xpath("./a/b/text()")[0]+".jpg"
+        # 通用的解决中文编码问题的方式
+        # pic_name = pic_name.encode('iso-8859-1').decode('gbk')
+        pic_src = li.xpath("./a/img/@src")[0]
+        pic_url = "http://pic.netbian.com"+pic_src
+        pic_data = requests.get(url=pic_url,headers=headers).content
+        with open("./05_netbian/"+pic_name, "wb") as f:
+            f.write(pic_data)
+            print("%s %s 下载成功！" % (pic_name, pic_url))
+
+
 if __name__ == '__main__':
-    fs58()
+    netbian()
