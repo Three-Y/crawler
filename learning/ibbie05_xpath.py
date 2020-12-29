@@ -1,6 +1,9 @@
 from lxml import etree
 import requests
 import os
+import time
+import random
+import re
 
 
 def test_etree():
@@ -69,5 +72,70 @@ def netbian():
             print("%s %s 下载成功！" % (pic_name, pic_url))
 
 
+def get_city():
+    """使用 | 连接多个条件"""
+    url = "https://www.aqistudy.cn/historydata/"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.163 Safari/535.1"}
+    page_text = requests.get(url=url,headers=headers).text
+    tree = etree.HTML(page_text)
+
+    # 方式一：
+    # a_list = tree.xpath("//ul[@class='unstyled']//li/a")
+
+    # 方式二：使用 | 连接多个条件
+    # 热门城市的层级关系：//ul[@class='unstyled']/li/a
+    # 全部城市的层级关系：//ul[@class='unstyled']/div[2]/li/a
+    a_list = tree.xpath("//ul[@class='unstyled']/li/a | //ul[@class='unstyled']/div[2]/li/a")
+    city_list = []
+    for a in a_list:
+        city = a.xpath("./text()")[0]
+        city_list.append(city)
+    print(city_list)
+    print(len(city_list))
+
+
+def down_resume_template():
+    """下载简历模板（未完成）"""
+    url = "https://www.job592.com/doc/down.html"
+    user_agents_list = [
+        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.163 Safari/535.1",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:6.0) Gecko/20100101 Firefox/6.0",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50",
+        "Opera/9.80 (Windows NT 6.1; U; zh-cn) Presto/2.9.168 Version/11.50"
+    ]
+    user_agent = random.choice(user_agents_list)
+    headers = {"User-Agent": user_agent}
+    page_text = requests.get(url=url, headers=headers).text
+    tree = etree.HTML(page_text)
+    li_list = tree.xpath("//div[@class='plist']/ul/li")
+    for li in li_list:
+        resume_href = li.xpath("./div/div[@class='p-img']/a/@href")[0]
+        # if not resume_href.startswith("/doc"):
+        #     continue
+        resume_url = "https://www.job592.com" + resume_href
+        print("打开页面：" + resume_url)
+        user_agent = random.choice(user_agents_list)
+        headers = {"User-Agent": user_agent}
+        resume_page_text = requests.get(url=resume_url, headers=headers).text
+        # 取文件id
+        resume_tree = etree.HTML(resume_page_text)
+        resume_id = resume_tree.xpath("/html/head/script/text()")[0]
+        resume_id = resume_id.split("docId = ")[1][:4]
+        download_url = "https://my.job592.com/baike/doc_docGet.action?id={}&uid=6524fc21070ce624864e9801d030091b&time=1609249283".format(resume_id)
+        print("正在下载：" + download_url)
+        # 下载文件
+        user_agent = random.choice(user_agents_list)
+        headers = {"User-Agent": user_agent}
+        file_response = requests.get(url=download_url, headers=headers)
+        file_data = file_response.text
+        # print(file_data)
+        # with open("./05_resume/"+resume_id+".docx", "w", encoding="utf-8") as f:
+        #     f.write(file_data)
+        time.sleep(random.randint(1, 2))
+        # resume_url = "https://www.job592.com/view/doc_toDownPage.show?uid=5f8c6078e4b0c3bc18072be6"
+        # "https://my.job592.com/baike/doc_docGet.action?id=6228&uid=6524fc21070ce624864e9801d030091b&time=1609249283"
+        # "https://my.job592.com/baike/doc_docGet.action?id=6228&uid=6524fc21070ce624864e9801d030091b&time=1609249283"
+
+
 if __name__ == '__main__':
-    netbian()
+    down_resume_template()
